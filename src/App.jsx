@@ -20,7 +20,7 @@ const App = () => {
   return (
     <div className="app-container">
       <Header toggleSidebar={toggleSidebar} />
-      <LocationSelector />
+      {/*<LocationSelector />*/}
       <div className="main-content">
         <MapContainer sidebarOpen={sidebarOpen} />
         <Sidebar
