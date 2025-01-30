@@ -22,12 +22,10 @@ const Sidebar = ({ sidebarOpen, selectedOptions, setSelectedOptions, onApply }) 
         value={selectedOptions.elevation}
         onChange={(e) => setSelectedOptions({ ...selectedOptions, elevation: e.target.value })}
       >
-        <option>300-400</option>
-        <option>400-500</option>
         <option>500-600</option>
         <option>600-700</option>
         <option>700-800</option>
-        <option>300-800</option>
+        <option>0-800</option>
       </select>
 
       <h3>Topologies</h3>
