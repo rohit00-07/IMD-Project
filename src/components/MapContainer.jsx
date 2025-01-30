@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import PropTypes from "prop-types";
 import L from "leaflet";
 import "./MapContainer.css";
+import selectedIconImage from '../assets/selected.png';
+import defualtIconImage from '../assets/Defualt.png';  
 
 const metadata = {
   "NIMGIRI JUNNAR": { lat: 19.20920, lng: 73.875, elevation: 619.00},
@@ -36,13 +38,14 @@ const metadata = {
 "WALHE PURANDAR": { lat: 18.17480, lng: 74.14980, elevation: 585.00},
 };
 
+
 const MapContainer = ({ sidebarOpen, selectedOptions, isFiltered }) => {
   const mapRef = useRef(null);
   const [map, setMap] = useState(null);
   const [markers, setMarkers] = useState([]);
-
-  const puneCoordinates = [18.5204, 73.8567]; // constant, not expected to change
-
+  const [selectedMarker, setSelectedMarker]= useState([]);
+  const [puneCoordinates, setPuneCoordinates] = useState([18.5204, 73.8567]); // constant, not expected to change
+             
   useEffect(() => {
     if (!mapRef.current) return;
 
@@ -60,37 +63,79 @@ const MapContainer = ({ sidebarOpen, selectedOptions, isFiltered }) => {
 
   useEffect(() => {
     if (!map) return;
-
+  
     // Clear existing markers
     markers.forEach((marker) => map.removeLayer(marker));
-
+  
     let locationsToShow = Object.entries(metadata);
-
+  
     if (isFiltered) {
       locationsToShow = locationsToShow.filter(([locationName, data]) => {
         const distance = calculateDistance(data.lat, data.lng, puneCoordinates[0], puneCoordinates[1]);
         const radius = Number.parseInt(selectedOptions.radius);
         const [minElevation, maxElevation] = selectedOptions.elevation.split("-").map(Number);
-
+  
         return distance <= radius && data.elevation >= minElevation && data.elevation <= maxElevation;
       });
     }
-
+  
+    const defaultIcon = new L.Icon({
+      iconUrl: defualtIconImage,
+      iconSize: [25, 41],
+      iconAnchor: [12, 41],
+      popupAnchor: [1, -34],
+    });
+  
+    const selectedIcon = new L.Icon({
+      iconUrl: selectedIconImage,  // Use the imported image
+      iconSize: [25, 41],
+      iconAnchor: [12, 41],
+      popupAnchor: [1, -34],
+    });
+  
+    let lastSelectedMarker = null; // Track previously selected marker
+  
     const newMarkers = locationsToShow.map(([locationName, data]) => {
-      const marker = L.marker([data.lat, data.lng]).addTo(map);
+      const marker = L.marker([data.lat, data.lng], { icon: defaultIcon }).addTo(map);
       marker.bindPopup(locationName);
+  
+      marker.on("click", () => {
+        setPuneCoordinates([data.lat, data.lng]);
+  
+        // Reset the previously selected marker before setting the new one
+        if (lastSelectedMarker) {
+          lastSelectedMarker.setIcon(defaultIcon);
+        }
+  
+        // Set the new selected marker
+        marker.setIcon(selectedIcon);
+        marker.openPopup();
+        lastSelectedMarker = marker; // Update the reference to the newly selected marker
+      });
+  
       return marker;
     });
-
+  
     setMarkers(newMarkers);
-
+  
     // Adjust map view to fit all markers
     if (newMarkers.length > 0) {
       const group = L.featureGroup(newMarkers);
       map.fitBounds(group.getBounds().pad(0.1));
     }
-  }, [map, selectedOptions, isFiltered]); // Only include map, selectedOptions, isFiltered here
+  }, [map, selectedOptions, isFiltered]);
+  
+  
+  useEffect(()=>{
+    let locationsToShow = Object.entries(metadata);
+    locationsToShow = locationsToShow.filter(([locationName, data]) => {
+      const distance = calculateDistance(data.lat, data.lng, puneCoordinates[0], puneCoordinates[1]);
+      const radius = Number.parseInt(selectedOptions.radius);
+      const [minElevation, maxElevation] = selectedOptions.elevation.split("-").map(Number);
 
+      return distance <= radius && data.elevation >= minElevation && data.elevation <= maxElevation;
+    });
+  },[puneCoordinates])
   return (
     <div className="map-container" style={{ marginRight: sidebarOpen ? "300px" : "0" }}>
       <div ref={mapRef} style={{ width: "100%", height: "100%" }}></div>
