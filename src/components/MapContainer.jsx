@@ -3,7 +3,7 @@ import PropTypes from "prop-types";
 import L from "leaflet";
 import "./MapContainer.css";
 import selectedIconImage from '../assets/selected.png';
-import defualtIconImage from '../assets/Defualt.png';  
+import defaultIconImage from '../assets/Default.png';  
 
 const metadata = {
   "NIMGIRI JUNNAR": { lat: 19.20920, lng: 73.875, elevation: 619.00},
@@ -80,7 +80,7 @@ const MapContainer = ({ sidebarOpen, selectedOptions, isFiltered }) => {
     }
   
     const defaultIcon = new L.Icon({
-      iconUrl: defualtIconImage,
+      iconUrl: defaultIconImage,
       iconSize: [25, 41],
       iconAnchor: [12, 41],
       popupAnchor: [1, -34],
