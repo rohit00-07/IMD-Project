@@ -79,19 +79,30 @@ const MapContainer = ({ sidebarOpen, selectedOptions, isFiltered }) => {
       });
     }
   
-    const defaultIcon = new L.Icon({
-      iconUrl: defaultIconImage,
+    const defaultIcon = new L.DivIcon({
+      html: `
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="25" height="41" fill="blue">
+          <path d="M12 2C8.13 2 5 5.13 5 9c0 4.87 7 13 7 13s7-8.13 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5S10.62 6.5 12 6.5 14.5 7.62 14.5 9 13.38 11.5 12 11.5z"/>
+        </svg>
+      `,
+      className: "custom-icon",
       iconSize: [25, 41],
       iconAnchor: [12, 41],
       popupAnchor: [1, -34],
     });
-  
-    const selectedIcon = new L.Icon({
-      iconUrl: selectedIconImage,  // Use the imported image
+    
+    const selectedIcon = new L.DivIcon({
+      html: `
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="25" height="41" fill="red">
+          <path d="M12 2C8.13 2 5 5.13 5 9c0 4.87 7 13 7 13s7-8.13 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5S10.62 6.5 12 6.5 14.5 7.62 14.5 9 13.38 11.5 12 11.5z"/>
+        </svg>
+      `,
+      className: "custom-icon",
       iconSize: [25, 41],
       iconAnchor: [12, 41],
       popupAnchor: [1, -34],
     });
+    
   
     let lastSelectedMarker = null; // Track previously selected marker
   
