@@ -1,5 +1,5 @@
 import { useState } from "react"
-import Sidebar from "./components/Sidebar"
+import Sidebar from "./components/SideBar/Sidebar"
 import Header from "./components/Header"
 import MapContainer from "./components/MapContainer"
 import "./App.css"
