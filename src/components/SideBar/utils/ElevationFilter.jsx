@@ -3,20 +3,19 @@ import { useCallback } from "react";
 
 const ElevationFilter = (props) => {
 
-    const {value, onChange} = props;
+    const {name, value, onChange} = props;
 
     const onChangeHandle = useCallback((e) => {
-        const data = {
-            elevation: e.target.value
-        }
-        e._data = data;
-        onChange && onChange(e);
-    }, [onChange]);
+      const selectedValue = e.target.value;
+
+      onChange && onChange({ ...e, _data: { [name]: selectedValue } });
+    }, [onChange, name]);
 
     return (
         <select
         value={value}
         onChange={onChangeHandle}
+        name={name}
       >
         <option>500-600</option>
         <option>600-700</option>
@@ -27,6 +26,7 @@ const ElevationFilter = (props) => {
 }
 
 ElevationFilter.propTypes = {
+  name: PropTypes.string.isRequired,
   value: PropTypes.string.isRequired,
   onChange: PropTypes.func.isRequired
 }

@@ -2,7 +2,7 @@
     width: 300px;
     background-color: #f8f9fa;
     position: fixed;
-    top: 0;
+    top: 120px;
     bottom: 0;
     right: -300px;
     z-index: 1000;
@@ -16,7 +16,9 @@
   
   .sidebar-content {
     padding: 20px;
-    height: 100%;
+    margin-bottom: 10px;
+    height: auto;
+    max-height: calc(100vh - 120px - 40px);
     overflow-y: auto;
   }
   
@@ -48,7 +50,8 @@
   
   .selected-options {
     margin-top: 15px;
-    padding: 15px;
+    margin-bottom: 15px;
+    padding: 10px;
     background-color: #e9ecef;
     border-radius: 8px;
     color: #333;
@@ -71,6 +74,22 @@
 }
 
 .apply-button:hover {
+  background-color: #0056b3;
+}
+
+.next-button {
+  width: 100%;
+  padding: 10px;
+  font-size: 16px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.next-button:hover {
   background-color: #0056b3;
 }
 

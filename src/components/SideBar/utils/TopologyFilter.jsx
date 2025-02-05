@@ -3,15 +3,13 @@ import { useCallback, useMemo } from "react";
 import { TopologyTypes } from "../../../constants/TopologyConstants";
 
 const TopologyFilter = (props) => {
-	const { value, onChange } = props;
+	const { name, value, onChange } = props;
 
 	const onChangeHandle = useCallback((e) => {
-		const data = {
-			topology: e.target.value,
-		};
-		e._data = data;
-		onChange && onChange(e);
-	},	[onChange]);
+		const selectedValue = e.target.value;
+
+        onChange && onChange({ ...e, _data: { [name]: selectedValue } });
+    }, [onChange, name]);
 
     const _renderTopologyOptions = useMemo(() => {
         return (Object.values(TopologyTypes).map((value) => (
@@ -20,13 +18,18 @@ const TopologyFilter = (props) => {
     }, []);
 
 	return (
-		<select value={value} onChange={onChangeHandle}>
+		<select 
+			value={value} 
+			onChange={onChangeHandle}
+			name={name}
+		>
             {_renderTopologyOptions}
 		</select>
 	);
 };
 
 TopologyFilter.propTypes = {
+	name: PropTypes.string.isRequired,
 	value: PropTypes.string.isRequired,
 	onChange: PropTypes.func.isRequired,
 };

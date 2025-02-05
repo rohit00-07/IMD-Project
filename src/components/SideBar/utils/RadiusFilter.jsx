@@ -3,20 +3,18 @@ import { useCallback } from "react";
 
 const RadiusFilter = (props) => {
 
-    const {value, onChange} = props;
+    const {name, value, onChange} = props;
 
     const onChangeHandle = useCallback((e) => {
-        const data = {
-            radius: e.target.value
-        }
-        e._data = data;
-        onChange && onChange(e);
-    }, [onChange]);
+      const selectedValue = e.target.value;
+      onChange && onChange({ ...e, _data: { [name]: selectedValue } });
+    }, [onChange, name]);
 
     return (
 		<select
 			value={value}
-            onChange={onChangeHandle}
+      onChange={onChangeHandle}
+      name={name} 
 		>
 			<option>5</option>
 			<option>10</option>
@@ -29,6 +27,7 @@ const RadiusFilter = (props) => {
 }
 
 RadiusFilter.propTypes = {
+  name: PropTypes.string.isRequired,
   value: PropTypes.string.isRequired,
   onChange: PropTypes.func.isRequired
 }
