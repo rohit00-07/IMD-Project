@@ -5,99 +5,107 @@ import RadiusFilter from "./utils/RadiusFilter"
 import ElevationFilter from "./utils/ElevationFilter"
 import TopologyFilter from "./utils/TopologyFilter"
 import "../../styles/Sidebar.css"
-import { useCallback, useEffect } from "react"
-import { AWSLocations } from "../../data/location"
+import { useCallback, useEffect, useMemo } from "react";
+import { AWSLocations } from "../../data/location";
 
-const Sidebar = ({
-  sidebarOpen,
-  selectedOptions = {},
-  setSelectedOptions,
-  onApply,
-  onNext,
-  setFilterMarker,
-  selectedStations,
-}) => {
-  const { radius = "", elevation = "", topology = "", dropdownStation = "PASHAN AWS LAB" } = selectedOptions
+const empObj = {},
+    empStr = "";
 
-  useEffect(() => {
-    if (!selectedOptions.dropdownStation) {
-      setSelectedOptions((prev) => ({
-        ...prev,
-        dropdownStation: "PASHAN AWS LAB",
-      }))
-    }
-  }, [selectedOptions.dropdownStation, setSelectedOptions])
+const Sidebar = (props) => {
+    const { sidebarOpen, selectedOptions = empObj, setSelectedOptions, onApply, onNext, setFilterMarker, selectedStations } = props;
 
-  useEffect(() => {
-    if (dropdownStation) {
-      setFilterMarker(dropdownStation)
-    }
-  }, [dropdownStation, setFilterMarker])
+    const { radius = empStr, elevation = empStr, topology = empStr, dropdownStation = "PASHAN AWS LAB" } = selectedOptions;
 
-  const onChangeHandle = useCallback(
-    (e) => {
-      const { name, value } = e.target
-      setSelectedOptions((prevSelectedOptions) => ({
-        ...prevSelectedOptions,
-        [name]: value,
-      }))
-    },
-    [setSelectedOptions],
-  )
+    useEffect(() => {
+        if (!selectedOptions.dropdownStation) {
+            setSelectedOptions((prev) => ({
+                ...prev,
+                dropdownStation: "PASHAN AWS LAB",
+            }));
+        }
+    }, [selectedOptions.dropdownStation, setSelectedOptions]);
 
-  const handleStationChange = (e) => {
-    const selectedStation = e.target.value
-    setSelectedOptions((prevSelectedOptions) => ({
-      ...prevSelectedOptions,
-      dropdownStation: selectedStation,
-    }))
-  }
+    useEffect(() => {
+        if (dropdownStation) {
+            setFilterMarker(dropdownStation);
+        }
+    }, [dropdownStation, setFilterMarker]);
 
-  return (
-    <div className={`sidebar ${sidebarOpen ? "open" : ""}`}>
-      <div className="sidebar-content">
-        <h3>Radius (Km)</h3>
-        <RadiusFilter name="radius" value={radius} onChange={onChangeHandle} />
+    const onChangeHandle = useCallback(
+        (e) => {
+            const { name, value } = e.target;
+            setSelectedOptions((prevSelectedOptions) => ({
+                ...prevSelectedOptions,
+                [name]: value,
+            }));
+        },
+        [setSelectedOptions]
+    );
 
-        <h3>Elevation</h3>
-        <ElevationFilter name="elevation" value={elevation} onChange={onChangeHandle} />
+    const handleStationChange = useCallback((e) => {
+            const selectedStation = e.target.value;
+            setSelectedOptions((prevSelectedOptions) => ({
+                ...prevSelectedOptions,
+                dropdownStation: selectedStation,
+            }));
+    },[setSelectedOptions]);
 
-        <h3>Topologies</h3>
-        <TopologyFilter name="topology" value={topology} onChange={onChangeHandle} />
-
-        <h3>Select a Station</h3>
-        <select name="station" value={dropdownStation} onChange={handleStationChange}>
-          {Object.keys(AWSLocations).map((station) => (
+    const _stationOptions = useMemo(() => {
+        return Object.keys(AWSLocations).map((station) => (
             <option key={station} value={station}>
-              {station}
+                {station}
             </option>
-          ))}
-        </select>
+        ));
+    }, []);
 
-        <button className="apply-button" onClick={onApply}>
-          Apply
-        </button>
-
-        <div className="selected-options">
-          <h3>Selected Stations:</h3>
-          {selectedStations.length === 0 ? (
-            <p>No stations selected</p>
-          ) : (
+    const _selectedStation = useMemo(() => {
+        if(selectedStations.length === 0){
+            return (
+                <p>No stations selected</p>
+            )
+        }
+        return (
             <ul>
-              {selectedStations.map((station, index) => (
-                <li key={index}>{station}</li>
-              ))}
+                {selectedStations.map((station, index) => (
+                    <li key={index}>{station}</li>
+                ))}
             </ul>
-          )}
-        </div>
+        )
+    }, [selectedStations]);
 
-        <button className="next-button" onClick={onNext}>
-          Next
-        </button>
-      </div>
-    </div>
-  )
-}
+    return (
+        <div className={`sidebar ${sidebarOpen ? "open" : ""}`}>
+            <div className="sidebar-content">
+                <h3>Radius (Km)</h3>
+                <RadiusFilter name="radius" value={radius} onChange={onChangeHandle} />
+
+                <h3>Elevation</h3>
+                <ElevationFilter name="elevation" value={elevation} onChange={onChangeHandle} />
+
+                <h3>Topologies</h3>
+                <TopologyFilter name="topology" value={topology} onChange={onChangeHandle} />
+
+                <h3>Select a Station</h3>
+                <select name="station" value={dropdownStation} onChange={handleStationChange}>
+                    {_stationOptions}
+                </select>
+
+                <button className="apply-button" onClick={onApply}>
+                    Apply
+                </button>
+
+                <div className="selected-options">
+                    <h3>Selected Stations:</h3>
+                    {_selectedStation}
+                </div>
+
+                <button className="next-button" onClick={onNext}>
+                    Next
+                </button>
+            </div>
+        </div>
+    );
+};
 
 Sidebar.propTypes = {
   sidebarOpen: PropTypes.bool.isRequired,
