@@ -73,4 +73,5 @@ PredictionMapContainer.propTypes = {
   selectedStations: PropTypes.arrayOf(PropTypes.string).isRequired,
 }
 
+
 export default PredictionMapContainer
