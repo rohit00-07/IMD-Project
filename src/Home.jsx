@@ -19,6 +19,7 @@ const Home = () => {
   })
 
   const [selectedStations, setSelectedStations] = useState([]) // Stores manually selected stations
+  const [dropdownStation, setDropdownStation] = useState("") // Stores the station selected from the dropdown
   const [appliedOptions, setAppliedOptions] = useState({ ...selectedOptions, selectedStations: [] })
   const [isFiltered, setIsFiltered] = useState(false)
   const navigate = useNavigate()
@@ -44,10 +45,12 @@ const Home = () => {
       })
       return
     }
-    navigate("/Prediction", { state: { stations: selectedStations } })
-  }, [navigate, selectedStations])
+    console.log("Dropdown Station Passed to Prediction Page:", dropdownStation);
+    navigate("/Prediction", { state: { stations: selectedStations, targetStation: selectedOptions.dropdownStation  } })
+  }, [navigate, selectedStations, selectedOptions.dropdownStation])
 
   const handleStationSelect = useCallback((station) => {
+    console.log("Station Selected in Home:", station);
     setSelectedOptions((prev) => ({ ...prev, dropdownStation: station }))
   }, [])
 

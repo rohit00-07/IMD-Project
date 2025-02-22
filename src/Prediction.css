@@ -7,7 +7,7 @@
 
 /* Adjust selection container to prevent extra scrollbars */
 .selection-container {
-    background-color: #f0f0f0;
+    background-color: #95b9c7;
     padding: 16px;
     border-radius: 8px;
     margin-top: 120px; /* Ensures it starts below the Header */
@@ -21,6 +21,11 @@
 }
 
 .selection-heading {
+    padding-bottom: 10px;
+}
+
+.target-heading {
+    padding-top: 10px;
     padding-bottom: 10px;
 }
 

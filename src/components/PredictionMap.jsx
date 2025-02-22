@@ -6,7 +6,7 @@ import L from "leaflet"
 import "../styles/PredictionMap.css"
 import { AWSLocations } from "../data/location"
 
-const PredictionMapContainer = ({ selectedStations }) => {
+const PredictionMapContainer = ({ selectedStations, targetStation }) => {
   const mapRef = useRef(null)
   const [map, setMap] = useState(null)
   const [markers, setMarkers] = useState({})
@@ -63,14 +63,33 @@ const PredictionMapContainer = ({ selectedStations }) => {
       newMarkers[stationName] = marker
     })
 
+    if (targetStation && AWSLocations[targetStation]) {
+      const targetData = AWSLocations[targetStation];
+      const targetMarker = L.marker([targetData.lat, targetData.lng], {
+        icon: createIcon("red"),
+      }).addTo(map);
+
+      targetMarker.bindTooltip(`Target: ${targetStation}`, {
+        permanent: false,
+        direction: "top",
+        opacity: 0.9,
+        offset: [0, -40],
+      });
+
+      targetMarker.bindPopup(targetStation);
+
+      newMarkers[targetStation] = targetMarker;
+    }
+
     setMarkers(newMarkers)
-  }, [map, selectedStations])
+  }, [map, selectedStations, targetStation]);
 
   return <div className="map-cont" ref={mapRef} style={{ width: "100%", height: "100%" }}></div>
 }
 
 PredictionMapContainer.propTypes = {
   selectedStations: PropTypes.arrayOf(PropTypes.string).isRequired,
+  targetStation: PropTypes.string.isRequired
 }
 
 

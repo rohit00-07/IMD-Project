@@ -5,10 +5,13 @@ import PredictionMap from "./components/PredictionMap";
 import "./Prediction.css";
 
 const Prediction = () => {
-  const { state } = useLocation();
-  const { stations } = state || {};
+  const location = useLocation();
+  const { stations, targetStation } = location.state || {};
   const [selectedModel, setSelectedModel] = useState("");
 
+  console.log("Received Stations:", stations); // Debugging
+  console.log("Received Selected Station:", targetStation);
+  
   return (
     <div className="prediction-container">
       <Header showSidebarToggle={false} />
@@ -22,6 +25,11 @@ const Prediction = () => {
               {station}
             </div>
           ))}
+        </div>
+
+        <div className="target-heading">TARGET STATION</div>
+        <div className="stations-grid">
+          <div className="station-item">{targetStation}</div>
         </div>
 
         {/* Model Selection and Predict Button */}
@@ -47,7 +55,7 @@ const Prediction = () => {
 
       {/* Prediction Map */}
       <div className="content">
-        <PredictionMap selectedStations={stations} />
+        <PredictionMap selectedStations={stations} targetStation={targetStation}/>
       </div>
     </div>
   );

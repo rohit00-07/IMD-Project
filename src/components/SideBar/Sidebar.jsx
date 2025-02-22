@@ -44,6 +44,7 @@ const Sidebar = (props) => {
 
     const handleStationChange = useCallback((e) => {
             const selectedStation = e.target.value;
+            console.log("Selected Station from Dropdown:", selectedStation);
             setSelectedOptions((prevSelectedOptions) => ({
                 ...prevSelectedOptions,
                 dropdownStation: selectedStation,
@@ -99,7 +100,7 @@ const Sidebar = (props) => {
                     {_selectedStation}
                 </div>
 
-                <button className="next-button" onClick={onNext}>
+                <button className="next-button" onClick={() => onNext(dropdownStation)}>
                     Next
                 </button>
             </div>

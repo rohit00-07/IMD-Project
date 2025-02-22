@@ -72,6 +72,9 @@ const MapContainer = (props) => {
             const { lat: centerLat, lng: centerLng } = selectedStationData; // Use dropdown station as center
 
             locationsToShow = locationsToShow.filter(([locationName, data]) => {
+                if (locationName === selectedOptions.dropdownStation) {
+                    return true;
+                }
                 const distance = calculateDistance(data.lat, data.lng, centerLat, centerLng);
                 const radius = Number.parseInt(selectedOptions.radius, 10);
                 const [minElevation, maxElevation] = selectedOptions.elevation.split("-").map(Number);
