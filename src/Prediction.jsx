@@ -40,9 +40,9 @@ const Prediction = () => {
             onChange={(e) => setSelectedModel(e.target.value)}
           >
             <option value="">SELECT MODEL</option>
-            <option value="model1">LSDM</option>
-            <option value="model2">Bi-LSDM</option>
-            <option value="model2">Stacked LSDM</option>
+            <option value="model1">LSTM</option>
+            <option value="model2">Bi-LSTM</option>
+            <option value="model2">Stacked LSTM</option>
             <option value="model2">GRU</option>
           </select>
 
