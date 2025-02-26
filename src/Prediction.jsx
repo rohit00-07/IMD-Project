@@ -40,11 +40,10 @@ const Prediction = () => {
             onChange={(e) => setSelectedModel(e.target.value)}
           >
             <option value="">SELECT MODEL</option>
-            <option value="model1">Model 1</option>
-            <option value="model2">Model 2</option>
-            <option value="model2">Model 3</option>
-            <option value="model2">Model 4</option>
-            <option value="model2">Model 5</option>
+            <option value="model1">LSDM</option>
+            <option value="model2">Bi-LSDM</option>
+            <option value="model2">Stacked LSDM</option>
+            <option value="model2">GRU</option>
           </select>
 
           <button className="predict-button" disabled={!selectedModel}>
