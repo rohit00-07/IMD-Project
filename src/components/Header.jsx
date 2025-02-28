@@ -20,7 +20,7 @@ const Header = (props) => {
       <img src="src/assets/logo.png" alt="Logo" className="logo" />
       <div className="header-title">EARLY WARNING SYSTEM</div>
       <img
-        src="src/assets/IMD_150.webp"
+        src="src/assets/brand-white.svg"
         alt="150 Years LOGO"
         className="logos"
       />
