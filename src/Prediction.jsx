@@ -15,7 +15,7 @@ const Prediction = () => {
   console.log("Received Stations:", stations); // Debugging
   console.log("Received Selected Station:", targetStation);
 
-  const handlePredict = () => {
+  const handlePredict = async () => {
     if (!selectedModel) {
       toast.warning("Please select a model before predicting the weather.", {
         position: "top-center",
@@ -27,30 +27,69 @@ const Prediction = () => {
       });
       return;
     }
+
+    if (!stations || !targetStation) {
+      toast.error("Stations or target station data is missing.", {
+        position: "top-center",
+        autoClose: 3000,
+      });
+      return;
+    }
+
     console.log("Predict button clicked!");
-  
-    const sampleHourlyData = [
-      { time: "00:00", rainfall: 0.1, temperature: 29 },
-      { time: "00:10", rainfall: 0.6, temperature: 29.8 },
-      { time: "00:20", rainfall: 0.4, temperature: 33.5 },
-      { time: "00:30", rainfall: 0.2, temperature: 31.2 },
-      { time: "00:40", rainfall: 0.9, temperature: 32.0 },
-      { time: "00:50", rainfall: 0.7, temperature: 27.8 },
-    ];
-  
-    const currentWeatherCondition = "rain";
-  
-    navigate("/weather-prediction", {
-      state: {
-        hourlyData: sampleHourlyData,
-        currentWeather: currentWeatherCondition,
-        stations,
-        targetStation,
-        selectedModel,
-      },
-    });
+
+    try {
+      // Make API call to Flask backend
+      const response = await fetch("http://localhost:5000/predict", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          selectedStations: stations,
+          targetStation: targetStation,
+        }),
+      });
+
+      const data = await response.json();
+      if (data.status === "success") {
+        // Format the predictions for the next route
+        const hourlyData = data.predictions.hours.map((hour, index) => ({
+          time: `${String(hour).padStart(2, "0")}:00`, // Format hour as HH:00
+          rainfall: data.predictions.rainfall[index],
+          temperature: data.predictions.temperature[index],
+          humidity: data.predictions.humidity[index], // Add humidity if needed
+        }));
+
+        // Determine current weather condition (simplified logic, adjust as needed)
+        const avgRainfall = data.predictions.rainfall.reduce((a, b) => a + b, 0) / data.predictions.rainfall.length;
+        const currentWeatherCondition = avgRainfall > 0.5 ? "rain" : "clear";
+
+        // Navigate to weather prediction page with the data
+        navigate("/weather-prediction", {
+          state: {
+            hourlyData,
+            currentWeather: currentWeatherCondition,
+            stations,
+            targetStation,
+            selectedModel,
+          },
+        });
+      } else {
+        toast.error(`Prediction failed: ${data.message}`, {
+          position: "top-center",
+          autoClose: 3000,
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching predictions:", error);
+      toast.error("An error occurred while fetching predictions.", {
+        position: "top-center",
+        autoClose: 3000,
+      });
+    }
   };
-  
+
   return (
     <div className="prediction-container">
       <Header showSidebarToggle={false} />
@@ -92,7 +131,7 @@ const Prediction = () => {
 
       {/* Prediction Map */}
       <div className="content">
-        <PredictionMap selectedStations={stations} targetStation={targetStation}/>
+        <PredictionMap selectedStations={stations || []} targetStation={targetStation || ""} />
       </div>
 
       {/* Toast Notification Container */}
