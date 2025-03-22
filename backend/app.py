@@ -1,85 +1,92 @@
 from flask import Flask, request, jsonify
-from flask_cors import CORS
-import pandas as pd
-import numpy as np
-import tensorflow as tf
 from tensorflow.keras.models import load_model
-import pickle
 from tensorflow.keras.losses import MeanSquaredError
+import numpy as np
+import pickle
+import os
 
 app = Flask(__name__)
-CORS(app)
 
-# Load the trained model and scalers with custom_objects
-model = load_model("model.h5", custom_objects={"mse": MeanSquaredError()})
-with open("scaler_x.pkl", "rb") as f:
-    scaler_x = pickle.load(f)
-with open("scaler_y.pkl", "rb") as f:
-    scaler_y = pickle.load(f)
+# Paths to model and scalers
+MODEL_PATH = "model.h5"
+SCALER_X_PATH = "scaler_x.pkl"
+SCALER_Y_PATH = "scaler_y.pkl"
 
-# Function to create sequences (same as in notebook)
-def create_sequences(X, time_steps=24):
-    X_seq = []
-    for i in range(len(X) - time_steps + 1):
-        X_seq.append(X[i : i + time_steps])
-    return np.array(X_seq)
+# Global variables for model and scalers
+model = None
+scaler_x = None
+scaler_y = None
+time_steps = 24  # Must match training
+num_features = None  # Will be set after loading model
+
+def load_trained_model():
+    """Loads the trained LSTM model and scalers."""
+    global model, scaler_x, scaler_y, num_features
+    try:
+        # Load model with custom loss function
+        custom_objects = {"mse": MeanSquaredError()}
+        model = load_model(MODEL_PATH, custom_objects=custom_objects)
+
+        # Load scalers
+        with open(SCALER_X_PATH, "rb") as f:
+            scaler_x = pickle.load(f)
+        with open(SCALER_Y_PATH, "rb") as f:
+            scaler_y = pickle.load(f)
+
+        # Infer number of features from scaler_x
+        num_features = scaler_x.n_features_in_
+        print(f"Model and scalers loaded successfully. Expected features: {num_features}")
+    except FileNotFoundError as e:
+        raise Exception(f"Missing file: {str(e)}")
+    except Exception as e:
+        raise Exception(f"Error loading model or scalers: {str(e)}")
+
+# Load model and scalers when the app starts
+try:
+    load_trained_model()
+except Exception as e:
+    print(f"Failed to initialize app: {str(e)}")
+    exit(1)
 
 @app.route("/predict", methods=["POST"])
 def predict():
+    """Receives JSON input, preprocesses it, and returns predictions."""
     try:
-        # Get data from frontend
+        # Parse input JSON
         data = request.get_json()
-        selected_stations = data.get("selectedStations", [])
-        target_station = data.get("targetStation", "")
-
-        # Load your station data (replace with actual file paths or DB queries)
-        target_df = pd.read_csv(f"data/{target_station}.csv")
-        selected_dfs = [pd.read_csv(f"data/{station}.csv") for station in selected_stations]
+        if "input_data" not in data:
+            return jsonify({"status": "error", "message": "Missing 'input_data' in JSON"}), 400
         
-        # Preprocess data
-        target_df['DATETIME'] = pd.to_datetime(target_df['DATETIME'], errors='coerce')
-        target_df = target_df.sort_values(by='DATETIME').reset_index(drop=True)
-        target_df.ffill(inplace=True)
+        input_data = np.array(data["input_data"])  # Convert input to NumPy array
 
-        for df in selected_dfs:
-            df['DATETIME'] = pd.to_datetime(df['DATETIME'], errors='coerce')
-            df = df.sort_values(by='DATETIME').reset_index(drop=True)
-            df.ffill(inplace=True)
+        # Validate input shape
+        if input_data.ndim != 2 or input_data.shape[0] != time_steps or input_data.shape[1] != num_features:
+            return jsonify({
+                "status": "error",
+                "message": f"Invalid input shape: expected ({time_steps}, {num_features}) but got {input_data.shape}"
+            }), 400
 
-        # Combine selected stations data
-        input_df = pd.concat(selected_dfs, axis=1, join="inner")
-        input_df = input_df.loc[:, ~input_df.columns.duplicated()]
+        # Normalize input
+        input_scaled = scaler_x.transform(input_data)
+        input_reshaped = input_scaled.reshape(1, time_steps, num_features)  # Batch size of 1
 
-        # Align with target station data
-        merged_df = pd.merge(input_df, target_df, on="DATETIME", how="inner")
+        # Make prediction
+        predicted_scaled = model.predict(input_reshaped)
+        predicted_scaled = predicted_scaled.reshape(time_steps, 3)  # 24 timesteps, 3 outputs
 
-        # Define input and output columns
-        output_cols = ["RAIN_DAILY(mm)_0", "TEMP(C)_0", "RH(%)_0"]
-        input_cols = [col for col in merged_df.columns if col not in output_cols and col != 'DATETIME']
+        # Inverse transform predictions
+        predicted_values = scaler_y.inverse_transform(predicted_scaled)
 
-        # Normalize data
-        X = scaler_x.transform(merged_df[input_cols].values)
-        
-        # Create sequences
-        time_steps = 24
-        X_seq = create_sequences(X, time_steps)
-        
-        # Predict next 24 hours
-        test_input = X_seq[-1].reshape(1, time_steps, X.shape[1])
-        predicted_scaled = model.predict(test_input).reshape(time_steps, 3)
-        real_predictions = scaler_y.inverse_transform(predicted_scaled)
+        return jsonify({
+            "status": "success",
+            "predictions": predicted_values.tolist()
+        })
 
-        # Format predictions
-        predictions = {
-            "hours": list(range(1, 25)),
-            "rainfall": real_predictions[:, 0].tolist(),
-            "temperature": real_predictions[:, 1].tolist(),
-            "humidity": real_predictions[:, 2].tolist()
-        }
-
-        return jsonify({"status": "success", "predictions": predictions})
+    except ValueError as e:
+        return jsonify({"status": "error", "message": f"Invalid input data: {str(e)}"}), 400
     except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
+        return jsonify({"status": "error", "message": f"Prediction failed: {str(e)}"}), 500
 
 if __name__ == "__main__":
-    app.run(debug=True, host="0.0.0.0", port=5001)
+    # Set debug=False for production
+    app.run(host="0.0.0.0", port=5001, debug=False)
